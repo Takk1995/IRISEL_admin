@@ -1,4 +1,4 @@
-import React, { useReducer, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -8,6 +8,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
+import { Toast } from 'primereact/toast';
 import classNames from 'classnames';
 
 const ProductDemo = () => {
@@ -34,6 +35,7 @@ const ProductDemo = () => {
     const [productDialog, setProductDialog] = useState(false)
     const [delProductDialog, setDelProductDialog] = useState(false)
     const [submitted, setSubmitted] = useState(false)
+    const [search, setSearch] = useState('')
     const toast = useRef(null)
 
     const reviseTemplate = (rowData) => {
@@ -42,16 +44,16 @@ const ProductDemo = () => {
                 <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editProduct(rowData)} />
                 <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => deleteProduct(rowData)} />
             </React.Fragment>
-        );
-    };
+        )
+    }
 
     const leftToolbarTemplate = () => {
         return (
             <div className="flex flex-wrap gap-2">
                 <Button label="New" icon="pi pi-plus" severity="success" onClick={openNew} />
             </div>
-        );
-    };
+        )
+    }
 
     const onInputChange = (e, Name) => {
         const val = (e.target && e.target.value) || ''
@@ -84,12 +86,12 @@ const ProductDemo = () => {
     const editProduct = (product) => {
         setProduct({ ...product })
         setProductDialog(true)
-    };
+    }
 
     const deleteProduct = (product) => {
         setProduct(product);
         setDelProductDialog(true);
-    };
+    }
 
     const confirmDel = () => {
         setProducts(products.filter((p) => p.Id !== product.Id))
@@ -98,23 +100,25 @@ const ProductDemo = () => {
     }
 
     const saveProduct = () => {
-        setSubmitted(true)
-        if (product.Name.trim()) {
-            let _products = [...products]
-            let _product = { ...product }
+        setSubmitted(true);    
+        if (product.Name.trim() && product.Class && product.Price >= 0 && product.Quantity >= 0) {
+            let _products = [...products];
+            let _product = { ...product };
+    
             if (product.Id) {
-                const index = findIndexById(product.Id)
-                _products[index] = _product
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 })
+                const index = findIndexById(product.Id);
+                _products[index] = _product;
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
             } else {
                 _product.Id = createId();
-                _product.Image = ''
-                _products.push(_product)
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 })
+                _products.push(_product);
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
             }
-            setProducts(_products)
-            setProductDialog(false)
-            setProduct(emptyProduct)
+            setProducts(_products);
+            setProductDialog(false);
+            setProduct(emptyProduct);
+        } else {
+            toast.current.show({ severity: 'error', summary: 'false', detail: '', life: 3000 });
         }
     }
 
@@ -130,7 +134,8 @@ const ProductDemo = () => {
     }
 
     const createId = () => {
-        return (Math.random() * 10000).toFixed(0);
+        const maxId = products.reduce((max, product) => Math.max(max, Number(product.Id)), 0);
+        return (maxId + 1).toString()
     }
 
     const onClassChange = (e) => {
@@ -145,20 +150,28 @@ const ProductDemo = () => {
         setProduct(_product)
     }
 
+    const filteredProducts = products.filter(product =>
+        product.Name.toLowerCase().includes(search.toLowerCase())
+    )
+
     const header = (
         <div className='flex flex-wrap gap-2 align-items-center justify-content-between'>
-            <h4 className="m-0">產品列表</h4>
+            <h2 className="m-0">產品列表</h2>
             <div className="flex align-items-center">
                 <i className="pi pi-search" style={{ marginRight: '0.5rem' }}></i>
-                <InputText type="search" placeholder="Search..." />
+                <InputText type="search"
+                           placeholder="Search..."
+                           value={search}
+                           onChange={(e) => setSearch(e.target.value)}
+                />
             </div>
         </div>
     )
 
     const productDialogFooter = (
         <React.Fragment>
-            <Button label="No" icon="pi pi-times" outlined onClick={hideDelProductDialog} />
-            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={saveProduct} />
+            <Button label="No" icon="pi pi-times" outlined onClick={hideDialog} />
+            <Button label="Yes" icon="pi pi-check" onClick={saveProduct} />
         </React.Fragment>
     )
 
@@ -171,9 +184,10 @@ const ProductDemo = () => {
 
     return (
         <div>
+            <Toast ref={toast}/>
             <div className='card'>
                 <Toolbar className='mb-4' left={leftToolbarTemplate} />
-                <DataTable value={products}
+                <DataTable value={filteredProducts}
                     header={header}
                     dataKey='Id'
                     paginator rows={10}
@@ -228,7 +242,7 @@ const ProductDemo = () => {
                 </div>
                 <div className="field">
                     <label htmlFor="description" className="font-bold">產品介紹</label>
-                    <InputTextarea id="description" value={product.Description} onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
+                    <InputTextarea id="description" value={product.Description} onChange={(e) => onInputChange(e, 'Description')} required rows={3} cols={20} />
                 </div>
                 <div className="field">
                     <label className="mb-3 font-bold">容量</label>
@@ -257,7 +271,7 @@ const ProductDemo = () => {
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            確定要刪除 <b>{product.Name}</b>?
+                            你確定要刪除 <b>{product.Name}</b> 嗎?
                         </span>
                     )}
                 </div>
