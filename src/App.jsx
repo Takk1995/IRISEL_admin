@@ -1,13 +1,17 @@
-import ProductDemo from "./components/ProductDemo";
-import Header from "./components/Header"
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './page/Login';
+import Home from "./page/Home";
 
 function App() {
-
     return (
-        <div>
-            <Header/>
-            <ProductDemo />
-        </div>
+        <Router>
+            <div>
+                <Routes>
+                    <Route exact path = '/' element = {<Login />} />
+                    <Route path = '/admin' element = {<Home />} />
+                </Routes>
+            </div>
+        </Router>
     );
 }
 
