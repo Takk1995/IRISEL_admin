@@ -24,12 +24,16 @@ const ProductDemo = () => {
     }
 
     const [products, setProducts] = useState([
-        { Id: '1', Code: '101000', Name: '1', Class: '1', Image: '', Description: 'Product Description', Price: 5600, Capacity: '100ml', Quantity: 10 },
-        { Id: '2', Code: '102000', Name: '2', Class: '2', Image: '', Description: 'Product Description', Price: 5400, Capacity: '100ml', Quantity: 10 },
-        { Id: '3', Code: '103000', Name: '3', Class: '3', Image: '', Description: 'Product Description', Price: 5200, Capacity: '100ml', Quantity: 10 },
-        { Id: '4', Code: '101100', Name: '1-1', Class: '1', Image: '', Description: 'Product Description', Price: 2800, Capacity: '50ml', Quantity: 5 },
-        { Id: '5', Code: '102100', Name: '2-2', Class: '2', Image: '', Description: 'Product Description', Price: 2700, Capacity: '50ml', Quantity: 5 },
-        { Id: '6', Code: '103100', Name: '3-3', Class: '3', Image: '', Description: 'Product Description', Price: 2600, Capacity: '50ml', Quantity: 5 },
+        { Id: '1', Code: '101000', Name: 'Product1', Class: 'Class1', Image: '', Description: 'Product Description', Price: 5600, Capacity: '100', Quantity: 10 },
+        { Id: '2', Code: '102000', Name: 'Product2', Class: 'Class2', Image: '', Description: 'Product Description', Price: 5400, Capacity: '100', Quantity: 11 },
+        { Id: '3', Code: '103000', Name: 'Product3', Class: 'Class3', Image: '', Description: 'Product Description', Price: 5200, Capacity: '100', Quantity: 7 },
+        { Id: '4', Code: '101100', Name: 'Product1-1', Class: 'Class1', Image: '', Description: 'Product Description', Price: 2800, Capacity: '50', Quantity: 0 },
+        { Id: '5', Code: '102100', Name: 'Product2-1', Class: 'Class2', Image: '', Description: 'Product Description', Price: 2700, Capacity: '50', Quantity: 9 },
+        { Id: '6', Code: '103100', Name: 'Product3-1', Class: 'Class3', Image: '', Description: 'Product Description', Price: 2600, Capacity: '50', Quantity: 5 },
+        { Id: '7', Code: '101200', Name: 'Product1-2', Class: 'Class1', Image: '', Description: 'Product Description', Price: 1600, Capacity: '30', Quantity: 0 },
+        { Id: '8', Code: '102200', Name: 'Product2-2', Class: 'Class2', Image: '', Description: 'Product Description', Price: 1500, Capacity: '30', Quantity: 4 },
+        { Id: '9', Code: '103200', Name: 'Product3-2', Class: 'Class3', Image: '', Description: 'Product Description', Price: 1400, Capacity: '30', Quantity: 12 },
+        { Id: '10', Code: '104000', Name: 'Product4', Class: 'Class4', Image: '', Description: 'Product Description', Price: 5800, Capacity: '100', Quantity: 3 }
     ]);
     const [product, setProduct] = useState(emptyProduct)
     const [productDialog, setProductDialog] = useState(false)
@@ -57,7 +61,7 @@ const ProductDemo = () => {
 
     const quantityBodyTemplate = (rowData) => {
         return (
-            <span style={{color : rowData.Quantity === 0 ? 'red' : 'inherit'}}>
+            <span style={{ color: rowData.Quantity === 0 ? 'red' : 'inherit' }}>
                 {rowData.Quantity}
             </span>
         )
@@ -108,11 +112,11 @@ const ProductDemo = () => {
     }
 
     const saveProduct = () => {
-        setSubmitted(true);    
+        setSubmitted(true);
         if (product.Name.trim() && product.Class && product.Price >= 0 && product.Quantity >= 0) {
             let _products = [...products];
             let _product = { ...product };
-    
+
             if (product.Id) {
                 const index = findIndexById(product.Id);
                 _products[index] = _product;
@@ -168,9 +172,9 @@ const ProductDemo = () => {
             <div className="flex align-items-center">
                 <i className="pi pi-search" style={{ marginRight: '0.5rem' }}></i>
                 <InputText type="search"
-                           placeholder="Search..."
-                           value={search}
-                           onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
         </div>
@@ -192,7 +196,7 @@ const ProductDemo = () => {
 
     return (
         <div>
-            <Toast ref={toast}/>
+            <Toast ref={toast} />
             <div className='card'>
                 <Toolbar className='mb-4' left={leftToolbarTemplate} />
                 <DataTable value={filteredProducts}
@@ -204,12 +208,12 @@ const ProductDemo = () => {
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
                 >
                     <Column field='Id' header='Id' sortable></Column>
-                    <Column field='Code' header='產品編號' sortable></Column>
+                    {/* <Column field='Code' header='產品編號' sortable></Column> */}
                     <Column field='Name' header='產品名稱' sortable></Column>
                     <Column field='Class' header='產品系列' sortable></Column>
-                    <Column field='Description' header='產品介紹'></Column>
-                    <Column field='Price' header='產品價格' sortable></Column>
-                    <Column field='Capacity' header='產品容量' sortable></Column>
+                    {/* <Column field='Description' header='產品介紹'></Column> */}
+                    <Column field='Price' header='產品價格(NT)' sortable></Column>
+                    <Column field='Capacity' header='產品容量(ml)' sortable></Column>
                     <Column field='Quantity' body={quantityBodyTemplate} header='產品庫存' sortable></Column>
                     <Column body={reviseTemplate}></Column>
                 </DataTable>
@@ -223,55 +227,61 @@ const ProductDemo = () => {
                 onHide={hideDialog}
             >
                 <div className="field">
-                    <label htmlFor="name" className="font-bold">產品名稱</label>
+                    <p htmlFor="name" className="font-bold">產品名稱</p>
                     <InputText id="name" value={product.Name} onChange={(e) => onInputChange(e, 'Name')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.Name })} />
                     {submitted && !product.Name && <small className="p-error">請輸入產品名稱.</small>}
                 </div>
                 <div className="field">
-                    <label className="mb-3 font-bold">產品系列</label>
+                    <p className="mb-3 font-bold">產品系列</p>
                     <div className="formgrid grid">
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class1" name="Class" value="1" onChange={onClassChange} checked={product.Class === '1'} />
+                            <RadioButton inputId="Class1" name="Class" value="Class1" onChange={onClassChange} checked={product.Class === 'Class1'} />
                             <label htmlFor="category1">1</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class2" name="Class" value="2" onChange={onClassChange} checked={product.Class === '2'} />
+                            <RadioButton inputId="Class2" name="Class" value="Class2" onChange={onClassChange} checked={product.Class === 'Class2'} />
                             <label htmlFor="category2">2</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class3" name="Class" value="3" onChange={onClassChange} checked={product.Class === '3'} />
+                            <RadioButton inputId="Class3" name="Class" value="Class3" onChange={onClassChange} checked={product.Class === 'Class3'} />
                             <label htmlFor="category3">3</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class4" name="Class" value="4" onChange={onClassChange} checked={product.Class === '4'} />
+                            <RadioButton inputId="Class4" name="Class" value="Class4" onChange={onClassChange} checked={product.Class === 'Class4'} />
                             <label htmlFor="category4">4</label>
                         </div>
                     </div>
                 </div>
                 <div className="field">
-                    <label htmlFor="description" className="font-bold">產品介紹</label>
-                    <InputTextarea id="description" value={product.Description} onChange={(e) => onInputChange(e, 'Description')} required rows={3} cols={20} />
-                </div>
-                <div className="field">
-                    <label className="mb-3 font-bold">容量</label>
-                    <div className="field-radiobutton col-6">
-                        <RadioButton inputId="Capacity1" name="Capacity" value="50ml" onChange={onCapacityChange} checked={product.Capacity === '50ml'} />
-                        <label htmlFor="category1">50ml</label>
-                    </div>
-                    <div className="field-radiobutton col-6">
-                        <RadioButton inputId="Capacity2" name="Capacity" value="100ml" onChange={onCapacityChange} checked={product.Capacity === '100ml'} />
-                        <label htmlFor="category1">100ml</label>
+                    <p className="mb-3 font-bold">容量</p>
+                    <div className="formgrid grid">
+                        <div className="field-radiobutton col-6">
+                            <RadioButton inputId="Capacity1" name="Capacity" value="30ml" onChange={onCapacityChange} checked={product.Capacity === '30'} />
+                            <label htmlFor="category1">30ml</label>
+                        </div>
+                        <div className="field-radiobutton col-6">
+                            <RadioButton inputId="Capacity2" name="Capacity" value="50ml" onChange={onCapacityChange} checked={product.Capacity === '50'} />
+                            <label htmlFor="category2">50ml</label>
+                        </div>
+                        <div className="field-radiobutton col-6">
+                            <RadioButton inputId="Capacity3" name="Capacity" value="100ml" onChange={onCapacityChange} checked={product.Capacity === '100'} />
+                            <label htmlFor="category3">100ml</label>
+                        </div>
                     </div>
                 </div>
                 <div className="formgrid grid">
                     <div className="field col">
-                        <label htmlFor="price" className="font-bold">Price</label>
+                        <label htmlFor="price" className="font-bold">金額</label>
                         <InputNumber id="price" value={product.Price} onValueChange={(e) => onInputNumberChange(e, 'Price')} />
                     </div>
                     <div className="field col">
-                        <label htmlFor="quantity" className="font-bold">Quantity</label>
+                        <label htmlFor="quantity" className="font-bold">庫存</label>
                         <InputNumber id="quantity" value={product.Quantity} onValueChange={(e) => onInputNumberChange(e, 'Quantity')} />
                     </div>
+                </div>
+                <div className="field">
+                    <p htmlFor="description" className="font-bold">產品介紹</p>
+                    <InputTextarea id="description" value={product.Description} onChange={(e) => onInputChange(e, 'Description')} required rows={3} cols={20} />
                 </div>
             </Dialog>
             <Dialog visible={delProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={delProductDialogFooter} onHide={hideDelProductDialog}>

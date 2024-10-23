@@ -1,0 +1,8 @@
+.loginCard .p-card-content {
+    padding: 0;
+}
+.loginCard .p-card-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
