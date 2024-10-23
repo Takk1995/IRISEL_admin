@@ -55,6 +55,14 @@ const ProductDemo = () => {
         )
     }
 
+    const quantityBodyTemplate = (rowData) => {
+        return (
+            <span style={{color : rowData.Quantity === 0 ? 'red' : 'inherit'}}>
+                {rowData.Quantity}
+            </span>
+        )
+    }
+
     const onInputChange = (e, Name) => {
         const val = (e.target && e.target.value) || ''
         let _product = { ...product }
@@ -195,14 +203,14 @@ const ProductDemo = () => {
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
                 >
-                    <Column field='Id' header='Id'></Column>
-                    <Column field='Code' header='產品編號'></Column>
-                    <Column field='Name' header='產品名稱'></Column>
-                    <Column field='Class' header='產品系列'></Column>
+                    <Column field='Id' header='Id' sortable></Column>
+                    <Column field='Code' header='產品編號' sortable></Column>
+                    <Column field='Name' header='產品名稱' sortable></Column>
+                    <Column field='Class' header='產品系列' sortable></Column>
                     <Column field='Description' header='產品介紹'></Column>
-                    <Column field='Price' header='產品價格'></Column>
-                    <Column field='Capacity' header='產品容量'></Column>
-                    <Column field='Quantity' header='產品庫存'></Column>
+                    <Column field='Price' header='產品價格' sortable></Column>
+                    <Column field='Capacity' header='產品容量' sortable></Column>
+                    <Column field='Quantity' body={quantityBodyTemplate} header='產品庫存' sortable></Column>
                     <Column body={reviseTemplate}></Column>
                 </DataTable>
             </div>
