@@ -202,7 +202,7 @@ const ProductDemo = () => {
                 <DataTable value={filteredProducts}
                     header={header}
                     dataKey='Id'
-                    paginator rows={10}
+                    paginator rows={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
