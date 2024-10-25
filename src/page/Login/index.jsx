@@ -15,9 +15,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate()
 
-    const test = {username: 'test123', password: '1234'}
-
-    const handleLogin = async() => {
+    const handleLogin = async() => {        
         if (username === '' && password === '') {
             setError('請輸入帳號密碼');
         } else if (username === '') {
@@ -25,26 +23,18 @@ const Login = () => {
         } else if (password === '') {
             setError('請輸入密碼')
         } else {
-            // try{
-            //     const response = await axios.post('http://localhost:5173/', {
-            //         username,
-            //         password
-            //     })
-
-            //     navigate('/admin')
-
-            // } catch (error) {
-            //     if (error.response) {
-            //         setError(error.response.data.message || '登入失敗')
-            //     } else {
-            //         setError('連線錯誤，請稍後再試');
-            //     }
-            // }
-
-            if (username === test.username && password === test.password) {
+            try{
+                const response = await axios.post('http://localhost:8000/api/login', {
+                    username,
+                    password
+                })
                 navigate('/admin')
-            } else {
-                setError('帳號或密碼錯誤')
+            } catch (error) {
+                if (error.response) {
+                    setError(error.response.data.message || '登入失敗')
+                } else {
+                    setError('連線錯誤，請稍後再試');
+                }
             }
         }
         setTimeout(() => setError(''), 3000);

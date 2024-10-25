@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import axios from 'axios';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -13,28 +14,32 @@ import classNames from 'classnames';
 
 const ProductDemo = () => {
     let emptyProduct = {
-        Id: null,
-        Name: '',
-        Class: null,
-        Image: null,
-        Description: '',
-        Price: 0,
-        Capacity: null,
-        Quantity: 0
+        id: null,
+        name: '',
+        number: '',
+        class: null,
+        image: null,
+        description: '',
+        price: 0,
+        capacity: null,
+        quantity: 0
     }
-
-    const [products, setProducts] = useState([
-        { Id: '1', Code: '101000', Name: 'Product1', Class: 'Class1', Image: '', Description: 'Product Description', Price: 5600, Capacity: '100', Quantity: 10 },
-        { Id: '2', Code: '102000', Name: 'Product2', Class: 'Class2', Image: '', Description: 'Product Description', Price: 5400, Capacity: '100', Quantity: 11 },
-        { Id: '3', Code: '103000', Name: 'Product3', Class: 'Class3', Image: '', Description: 'Product Description', Price: 5200, Capacity: '100', Quantity: 7 },
-        { Id: '4', Code: '101100', Name: 'Product1-1', Class: 'Class1', Image: '', Description: 'Product Description', Price: 2800, Capacity: '50', Quantity: 0 },
-        { Id: '5', Code: '102100', Name: 'Product2-1', Class: 'Class2', Image: '', Description: 'Product Description', Price: 2700, Capacity: '50', Quantity: 9 },
-        { Id: '6', Code: '103100', Name: 'Product3-1', Class: 'Class3', Image: '', Description: 'Product Description', Price: 2600, Capacity: '50', Quantity: 5 },
-        { Id: '7', Code: '101200', Name: 'Product1-2', Class: 'Class1', Image: '', Description: 'Product Description', Price: 1600, Capacity: '30', Quantity: 0 },
-        { Id: '8', Code: '102200', Name: 'Product2-2', Class: 'Class2', Image: '', Description: 'Product Description', Price: 1500, Capacity: '30', Quantity: 4 },
-        { Id: '9', Code: '103200', Name: 'Product3-2', Class: 'Class3', Image: '', Description: 'Product Description', Price: 1400, Capacity: '30', Quantity: 12 },
-        { Id: '10', Code: '104000', Name: 'Product4', Class: 'Class4', Image: '', Description: 'Product Description', Price: 5800, Capacity: '100', Quantity: 3 }
-    ]);
+    
+    useEffect(() => {
+        const fetchProducts = async() => {
+            try {
+                const response = await axios.get('http://localhost:8000/api/admin')
+                setProducts(response.data)
+            } catch (error) {
+                console.log(error);
+                
+                console.error('Error fetching')
+            }
+        }
+        fetchProducts()
+    }, [])
+    
+    const [products, setProducts] = useState([]);
     const [product, setProduct] = useState(emptyProduct)
     const [productDialog, setProductDialog] = useState(false)
     const [delProductDialog, setDelProductDialog] = useState(false)
@@ -61,22 +66,22 @@ const ProductDemo = () => {
 
     const quantityBodyTemplate = (rowData) => {
         return (
-            <span style={{ color: rowData.Quantity === 0 ? 'red' : 'inherit' }}>
-                {rowData.Quantity}
+            <span style={{ color: rowData.quantity === 0 ? 'red' : 'inherit' }}>
+                {rowData.quantity}
             </span>
         )
     }
 
-    const onInputChange = (e, Name) => {
+    const onInputChange = (e, name) => {
         const val = (e.target && e.target.value) || ''
         let _product = { ...product }
-        _product[Name] = val
+        _product[name] = val
         setProduct(_product)
     }
 
-    const onInputNumberChange = (e, Name) => {
+    const onInputNumberChange = (e, name) => {
         let _product = { ...product }
-        _product[Name] = e.value
+        _product[name] = e.value
         setProduct(_product)
     }
 
@@ -88,6 +93,7 @@ const ProductDemo = () => {
 
     const hideDialog = () => {
         setSubmitted(false)
+        setProduct(emptyProduct)
         setProductDialog(false)
     }
 
@@ -105,39 +111,46 @@ const ProductDemo = () => {
         setDelProductDialog(true);
     }
 
-    const confirmDel = () => {
-        setProducts(products.filter((p) => p.Id !== product.Id))
-        setDelProductDialog(false)
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 })
+    const confirmDel = async() => {
+        try {
+            await axios.delete(`http://localhost:8000/api/admin/${product.id}`);
+            setProducts(products.filter((p) => p.id !== product.id));
+            setDelProductDialog(false);
+            toast.current.show({ severity: 'success', summary: 'Successful', detail: '已刪除', life: 3000 });
+        } catch (error) {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: '刪除失敗', life: 3000 });
+        }
     }
 
-    const saveProduct = () => {
+    const saveProduct = async() => {
         setSubmitted(true);
-        if (product.Name.trim() && product.Class && product.Price >= 0 && product.Quantity >= 0) {
+        if (product.name.trim() && product.class && product.price >= 0 && product.quantity >= 0 && product.capacity) {
             let _products = [...products];
             let _product = { ...product };
 
-            if (product.Id) {
-                const index = findIndexById(product.Id);
+            if (product.id) {
+                await axios.put(`http://localhost:8000/api/admin/${product.id}`, _product);
+                const index = findIndexById(product.id);
                 _products[index] = _product;
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+                toast.current.show({ severity: 'success', summary: '成功', detail: '產品更新', life: 3000 });
             } else {
-                _product.Id = createId();
+                const response = await axios.post('http://localhost:8000/api/admin', _product);
+                _product.id = createId();
                 _products.push(_product);
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+                toast.current.show({ severity: 'success', summary: '成功', detail: '產品新增', life: 3000 });
             }
             setProducts(_products);
             setProductDialog(false);
             setProduct(emptyProduct);
         } else {
-            toast.current.show({ severity: 'error', summary: 'false', detail: '', life: 3000 });
+            toast.current.show({ severity: 'error', summary: 'Error', detail: '請確保都已填寫', life: 3000 });
         }
     }
 
-    const findIndexById = (Id) => {
+    const findIndexById = (id) => {
         let index = -1
         for (let i = 0; i < products.length; i++) {
-            if (products[i].Id === Id) {
+            if (products[i].id === id) {
                 index = i
                 break
             }
@@ -146,24 +159,24 @@ const ProductDemo = () => {
     }
 
     const createId = () => {
-        const maxId = products.reduce((max, product) => Math.max(max, Number(product.Id)), 0);
+        const maxId = products.reduce((max, product) => Math.max(max, parseInt(product.id)), 0);
         return (maxId + 1).toString()
     }
 
     const onClassChange = (e) => {
         let _product = { ...product }
-        _product['Class'] = e.value
+        _product['class'] = e.value
         setProduct(_product)
     }
 
     const onCapacityChange = (e) => {
         let _product = { ...product }
-        _product['Capacity'] = e.value
+        _product['capacity'] = e.value
         setProduct(_product)
     }
 
     const filteredProducts = products.filter(product =>
-        product.Name.toLowerCase().includes(search.toLowerCase())
+        product.name?.toLowerCase().includes(search.toLowerCase())
     )
 
     const header = (
@@ -201,20 +214,20 @@ const ProductDemo = () => {
                 <Toolbar className='mb-4' left={leftToolbarTemplate} />
                 <DataTable value={filteredProducts}
                     header={header}
-                    dataKey='Id'
+                    dataKey='id'
                     paginator rows={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
                 >
-                    <Column field='Id' header='Id' sortable></Column>
-                    {/* <Column field='Code' header='產品編號' sortable></Column> */}
-                    <Column field='Name' header='產品名稱' sortable></Column>
-                    <Column field='Class' header='產品系列' sortable></Column>
-                    {/* <Column field='Description' header='產品介紹'></Column> */}
-                    <Column field='Price' header='產品價格(NT)' sortable></Column>
-                    <Column field='Capacity' header='產品容量(ml)' sortable></Column>
-                    <Column field='Quantity' body={quantityBodyTemplate} header='產品庫存' sortable></Column>
+                    <Column field='id' header='Id' sortable></Column>
+                    <Column field='number' header='產品編號' sortable></Column>
+                    <Column field='name' header='產品名稱' sortable></Column>
+                    <Column field='class' header='產品系列' sortable></Column>
+                    {/* <Column field='description' header='產品介紹'></Column> */}
+                    <Column field='price' header='產品價格(NT)' sortable></Column>
+                    <Column field='capacity' header='產品容量(ml)' sortable></Column>
+                    <Column field='quantity' body={quantityBodyTemplate} header='產品庫存' sortable></Column>
                     <Column body={reviseTemplate}></Column>
                 </DataTable>
             </div>
@@ -228,26 +241,26 @@ const ProductDemo = () => {
             >
                 <div className="field">
                     <p htmlFor="name" className="font-bold">產品名稱</p>
-                    <InputText id="name" value={product.Name} onChange={(e) => onInputChange(e, 'Name')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.Name })} />
-                    {submitted && !product.Name && <small className="p-error">請輸入產品名稱.</small>}
+                    <InputText id="name" value={product.name} onChange={(e) => onInputChange(e, 'name')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.name })} />
+                    {submitted && !product.name && <small className="p-error">請輸入產品名稱.</small>}
                 </div>
                 <div className="field">
                     <p className="mb-3 font-bold">產品系列</p>
                     <div className="formgrid grid">
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class1" name="Class" value="Class1" onChange={onClassChange} checked={product.Class === 'Class1'} />
+                            <RadioButton inputId="class1" name="class" value="class1" onChange={onClassChange} checked={product.class === 'class1'} />
                             <label htmlFor="category1">1</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class2" name="Class" value="Class2" onChange={onClassChange} checked={product.Class === 'Class2'} />
+                            <RadioButton inputId="class2" name="class" value="class2" onChange={onClassChange} checked={product.class === 'class2'} />
                             <label htmlFor="category2">2</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class3" name="Class" value="Class3" onChange={onClassChange} checked={product.Class === 'Class3'} />
+                            <RadioButton inputId="class3" name="class" value="class3" onChange={onClassChange} checked={product.class === 'class3'} />
                             <label htmlFor="category3">3</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Class4" name="Class" value="Class4" onChange={onClassChange} checked={product.Class === 'Class4'} />
+                            <RadioButton inputId="class4" name="class" value="class4" onChange={onClassChange} checked={product.class === 'class4'} />
                             <label htmlFor="category4">4</label>
                         </div>
                     </div>
@@ -256,32 +269,32 @@ const ProductDemo = () => {
                     <p className="mb-3 font-bold">容量</p>
                     <div className="formgrid grid">
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Capacity1" name="Capacity" value="30ml" onChange={onCapacityChange} checked={product.Capacity === '30'} />
-                            <label htmlFor="category1">30ml</label>
+                            <RadioButton inputId="capacity1" name="capacity" value="30" onChange={onCapacityChange} checked={product.capacity === '30'} />
+                            <label htmlFor="capacity1">30ml</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Capacity2" name="Capacity" value="50ml" onChange={onCapacityChange} checked={product.Capacity === '50'} />
-                            <label htmlFor="category2">50ml</label>
+                            <RadioButton inputId="capacity2" name="capacity" value="50" onChange={onCapacityChange} checked={product.capacity === '50'} />
+                            <label htmlFor="capacity2">50ml</label>
                         </div>
                         <div className="field-radiobutton col-6">
-                            <RadioButton inputId="Capacity3" name="Capacity" value="100ml" onChange={onCapacityChange} checked={product.Capacity === '100'} />
-                            <label htmlFor="category3">100ml</label>
+                            <RadioButton inputId="capacity3" name="capacity" value="100" onChange={onCapacityChange} checked={product.capacity === '100'} />
+                            <label htmlFor="capacity3">100ml</label>
                         </div>
                     </div>
                 </div>
                 <div className="formgrid grid">
                     <div className="field col">
                         <label htmlFor="price" className="font-bold">金額</label>
-                        <InputNumber id="price" value={product.Price} onValueChange={(e) => onInputNumberChange(e, 'Price')} />
+                        <InputNumber id="price" value={product.price} onValueChange={(e) => onInputNumberChange(e, 'price')} />
                     </div>
                     <div className="field col">
                         <label htmlFor="quantity" className="font-bold">庫存</label>
-                        <InputNumber id="quantity" value={product.Quantity} onValueChange={(e) => onInputNumberChange(e, 'Quantity')} />
+                        <InputNumber id="quantity" value={product.quantity} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
                     </div>
                 </div>
                 <div className="field">
                     <p htmlFor="description" className="font-bold">產品介紹</p>
-                    <InputTextarea id="description" value={product.Description} onChange={(e) => onInputChange(e, 'Description')} required rows={3} cols={20} />
+                    <InputTextarea id="description" value={product.description} onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
                 </div>
             </Dialog>
             <Dialog visible={delProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={delProductDialogFooter} onHide={hideDelProductDialog}>
@@ -289,7 +302,7 @@ const ProductDemo = () => {
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            你確定要刪除 <b>{product.Name}</b> 嗎?
+                            你確定要刪除 <b>{product.name}</b> 嗎?
                         </span>
                     )}
                 </div>
