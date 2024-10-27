@@ -35,7 +35,7 @@ const Header = () => {
                 </div>
             </Sidebar>
             <div className="flex justify-content-center align-items-center" style={{ flexGrow: 1 }}>
-                <img src="/Img/logo.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                <img src="/Imgs/logo.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
             </div>
         </div>
     )
