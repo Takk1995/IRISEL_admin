@@ -18,7 +18,7 @@ const ProductDemo = () => {
         product_name: '',
         product_code: '',
         main_type_id: '',
-        img_url: null,
+        img_url: '',
         product_intro: '',
         scent_profile: '',
         summary: '',
@@ -27,20 +27,21 @@ const ProductDemo = () => {
         quantity: ''
     }
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/admin');
-                const productsWithStringCodes = response.data.map(product => ({
-                    ...product,
-                    product_code: String(product.product_code)
-                }));
-                setProducts(productsWithStringCodes);
-            } catch (error) {
-                console.log(error)
-                console.error('Error fetching')
-            }
+    const fetchProducts = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/api/admin');
+            const productsWithStringCodes = response.data.map(product => ({
+                ...product,
+                product_code: String(product.product_code)
+            }));
+            setProducts(productsWithStringCodes);
+        } catch (error) {
+            console.log(error)
+            console.error('Error fetching')
         }
+    }
+
+    useEffect(() => {
         fetchProducts()
     }, [])
 
@@ -50,8 +51,8 @@ const ProductDemo = () => {
     const [delProductDialog, setDelProductDialog] = useState(false)
     const [submitted, setSubmitted] = useState(false)
     const [search, setSearch] = useState('')
-    const [image, setImage] = useState([])
-    const [existingImage, setExistingImage] = useState([])
+    // const [image, setImage] = useState([])
+    // const [existingImage, setExistingImage] = useState([])
     const toast = useRef(null)
 
     const reviseTemplate = (rowData) => {
@@ -79,11 +80,20 @@ const ProductDemo = () => {
         )
     }
 
-    const onImageChange = (e) => {
-        const files = Array.from(e.target.files)
-        const imageUrls = files.map(file => URL.createObjectURL(file))
-        setImage(imageUrls)
-    }
+    // const onImageChange = (e) => {
+    //     const files = Array.from(e.target.files);
+    //     const imageFiles = files.map(file => ({
+    //         file,
+    //         url: URL.createObjectURL(file)
+    //     }));
+    //     setImage(imageFiles);
+
+    //     const newImgUrls = imageFiles.map(img => img.url);
+    //     setProduct((prevProduct) => ({
+    //         ...prevProduct,
+    //         img_url: [...existingImage, ...newImgUrls]
+    //     }))
+    // }
 
     const onInputChange = (e, name) => {
         const val = (e.target && e.target.value) || ''
@@ -100,8 +110,8 @@ const ProductDemo = () => {
 
     const openNew = () => {
         setProduct(emptyProduct)
-        setImage([])
-        setExistingImage([])
+        // setImage([])
+        // setExistingImage([])
         setSubmitted(false)
         setProductDialog(true)
     }
@@ -118,7 +128,7 @@ const ProductDemo = () => {
 
     const editProduct = (product) => {
         setProduct({ ...product })
-        setExistingImage(product.image || [])
+        // setExistingImage(Array.isArray(product.img_url) ? product.img_url : [product.img_url]);
         setProductDialog(true)
     }
 
@@ -148,34 +158,39 @@ const ProductDemo = () => {
             const nextZ = getNextZValue(_products, productCodePrefix)
             _product.product_code = `${productCodePrefix}${nextZ}`
 
-            const formData = new FormData();
+            // const formData = new FormData();
 
+            // if (image.length > 0) {
+            //     image.forEach((img) => {
+            //         const file = img.file
+            //         formData.append('images', file)
+            //     })
+            // }
+
+            // formData.append('product', JSON.stringify(_product))
+            console.log(_product);
+            
             if (product.product_id) {
-                formData.append('product', JSON.stringify(_product))
-                await axios.put(`http://localhost:8000/api/admin/${product.product_id}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
+                // formData.append('product', JSON.stringify(_product))
+                await axios.put(`http://localhost:8000/api/admin/${product.product_id}`, _product);
                 const index = findIndexById(product.product_id)
                 _products[index] = _product
                 toast.current.show({ severity: 'success', summary: '成功', detail: '產品更新', life: 3000 })
             } else {
-                formData.append('product', JSON.stringify(_product))
-                const response = await axios.post('http://localhost:8000/api/admin', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
+                // formData.append('product', JSON.stringify(_product))
+                const response = await axios.post('http://localhost:8000/api/admin', _product);
                 _product.product_id = response.data.id
+                console.log(response.data.id);
+                
                 _products.push(_product)
                 toast.current.show({ severity: 'success', summary: '成功', detail: '產品新增', life: 3000 })
             }
             setProducts(_products)
             setProductDialog(false)
             setProduct(emptyProduct)
-            setImage([])
-            setExistingImage([])
+            await fetchProducts()
+            // setImage([])
+            // setExistingImage([])
         } else {
             toast.current.show({ severity: 'error', summary: 'Error', detail: '請確保都已填寫', life: 3000 })
         }
@@ -217,11 +232,6 @@ const ProductDemo = () => {
         return index
     }
 
-    const createId = () => {
-        const maxId = products.reduce((max, product) => Math.max(max, parseInt(product.product_id)), 0)
-        return (maxId + 1).toString()
-    }
-
     const onClassChange = (e) => {
         let _product = { ...product }
         _product['main_type_id'] = e.value
@@ -253,7 +263,9 @@ const ProductDemo = () => {
     }
 
     const filteredProducts = products.filter(product =>
-        product.product_name?.toLowerCase().includes(search.toLowerCase())
+        product.product_name?.toLowerCase().includes(search.toLowerCase()) ||
+        product.product_id?.toString().includes(search) ||
+        product.product_code?.toString().includes(search)
     )
 
     const header = (
@@ -302,8 +314,12 @@ const ProductDemo = () => {
                     <Column field='product_name' header='產品名稱' sortable></Column>
                     <Column field='main_type_id' header='產品系列' sortable body={mainTypeTemplate}></Column>
                     <Column field='product_intro' header='產品介紹' body={(rowData) => truncateText(rowData.product_intro)}></Column>
-                    <Column field='scent_profile' header='香氛調性' body={(rowData) => truncateText(rowData.scent_profile)}></Column>
-                    <Column field='summary' header='產品摘要' body={(rowData) => truncateText(rowData.summary)}></Column>
+                    {/* <Column header='產品圖片' body={(rowData) => (
+                        <img src={rowData.img_url} alt={rowData.product_name} style={{ width: '100px', height: 'auto' }} />
+                    )}>
+                    </Column> */}
+                    {/* <Column field='scent_profile' header='香氛調性' body={(rowData) => truncateText(rowData.scent_profile)}></Column> */}
+                    {/* <Column field='summary' header='產品摘要' body={(rowData) => truncateText(rowData.summary)}></Column> */}
                     <Column field='price' header='產品價格(NT)' sortable></Column>
                     <Column field='capacity' header='產品容量(ml)' sortable></Column>
                     <Column field='quantity' body={quantityBodyTemplate} header='產品庫存' sortable></Column>
@@ -313,12 +329,12 @@ const ProductDemo = () => {
             <Dialog visible={productDialog}
                 style={{ width: '32rem' }}
                 breakpoints={{ '960px': '75vw', '641px': '90vw' }}
-                header="Product Details"
+                header={product.product_id ? "Edit Product" : "New Product"}
                 modal className="p-fluid"
                 footer={productDialogFooter}
                 onHide={hideDialog}
             >
-                {existingImage.length > 0 && (
+                {/* {existingImage.length > 0 && (
                     <div className="field">
                         <p className="font-bold">現有圖片</p>
                         <div className="image-preview">
@@ -327,11 +343,21 @@ const ProductDemo = () => {
                             ))}
                         </div>
                     </div>
-                )}
-                <div className="field">
+                )} */}
+                {/* <div className="field">
                     <p htmlFor="images" className="font-bold">上傳新圖片</p>
                     <input type="file" id="images" multiple accept="image/*" onChange={(e) => onImageChange(e)} />
-                </div>
+                </div> */}
+                {/* {image.length > 0 && (
+                    <div className="field">
+                        <p className="font-bold">預覽新圖片</p>
+                        <div className="image-preview">
+                            {image.map((img, index) => (
+                                <img key={index} src={img.url} alt={`Preview ${index}`} style={{ width: '100px', marginRight: '10px' }} />
+                            ))}
+                        </div>
+                    </div>
+                )} */}
                 <div className="field">
                     <p htmlFor="name" className="font-bold">產品名稱</p>
                     <InputText id="name" value={product.product_name} onChange={(e) => onInputChange(e, 'product_name')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.product_name })} />
