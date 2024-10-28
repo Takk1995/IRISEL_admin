@@ -149,7 +149,7 @@ const ProductDemo = () => {
             _product.product_code = `${productCodePrefix}${nextZ}`
 
             const formData = new FormData();
-        
+
             if (product.product_id) {
                 formData.append('product', JSON.stringify(_product))
                 await axios.put(`http://localhost:8000/api/admin/${product.product_id}`, formData, {
@@ -234,6 +234,24 @@ const ProductDemo = () => {
         setProduct(_product)
     }
 
+    const truncateText = (text, maxLength = 20) => {
+        if (!text) return '';
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    const mainTypeTemplate = (rowData) => {
+        switch (rowData.main_type_id) {
+            case 1:
+                return '花香調';
+            case 2:
+                return '木質調';
+            case 3:
+                return '東方香調/琥珀調';
+            case 4:
+                return '清新調';
+        }
+    }
+
     const filteredProducts = products.filter(product =>
         product.product_name?.toLowerCase().includes(search.toLowerCase())
     )
@@ -282,10 +300,10 @@ const ProductDemo = () => {
                     <Column field='product_id' header='Id' sortable></Column>
                     <Column field='product_code' header='產品編號' sortable></Column>
                     <Column field='product_name' header='產品名稱' sortable></Column>
-                    <Column field='main_type_id' header='產品系列' sortable></Column>
-                    <Column field='product_intro' header='產品介紹'></Column>
-                    <Column field='scent_profile' header='產品介紹'></Column>
-                    <Column field='summary' header='產品介紹'></Column>
+                    <Column field='main_type_id' header='產品系列' sortable body={mainTypeTemplate}></Column>
+                    <Column field='product_intro' header='產品介紹' body={(rowData) => truncateText(rowData.product_intro)}></Column>
+                    <Column field='scent_profile' header='香氛調性' body={(rowData) => truncateText(rowData.scent_profile)}></Column>
+                    <Column field='summary' header='產品摘要' body={(rowData) => truncateText(rowData.summary)}></Column>
                     <Column field='price' header='產品價格(NT)' sortable></Column>
                     <Column field='capacity' header='產品容量(ml)' sortable></Column>
                     <Column field='quantity' body={quantityBodyTemplate} header='產品庫存' sortable></Column>
