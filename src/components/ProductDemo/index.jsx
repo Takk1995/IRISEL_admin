@@ -18,6 +18,9 @@ const ProductDemo = () => {
         product_name: '',
         product_code: '',
         main_type_id: '',
+        sort_in_type: '',
+        main_type_name: '',
+        main_type_Chinese: '',
         img_url: '',
         product_intro: '',
         scent_profile: '',
@@ -157,7 +160,8 @@ const ProductDemo = () => {
             const productCodePrefix = `10${product.main_type_id}${getCapacity(product.capacity)}0`
             const nextZ = getNextZValue(_products, productCodePrefix)
             _product.product_code = `${productCodePrefix}${nextZ}`
-
+            _product.sort_in_type = nextZ
+            
             // const formData = new FormData();
 
             // if (image.length > 0) {
@@ -168,7 +172,6 @@ const ProductDemo = () => {
             // }
 
             // formData.append('product', JSON.stringify(_product))
-            console.log(_product);
             
             if (product.product_id) {
                 // formData.append('product', JSON.stringify(_product))
@@ -235,6 +238,27 @@ const ProductDemo = () => {
     const onClassChange = (e) => {
         let _product = { ...product }
         _product['main_type_id'] = e.value
+        switch (e.value) {
+            case '1':
+                _product['main_type_name'] = 'floral_type';
+                _product['main_type_Chinese'] = '花香調';
+                break;
+            case '2':
+                _product['main_type_name'] = 'woody_type';
+                _product['main_type_Chinese'] = '木質調';
+                break;
+            case '3':
+                _product['main_type_name'] = 'oriental_type';
+                _product['main_type_Chinese'] = '東方香調/琥珀調';
+                break;
+            case '4':
+                _product['main_type_name'] = 'fresh_type';
+                _product['main_type_Chinese'] = '清新調';
+                break;
+            default:
+                _product['main_type_name'] = '';
+                _product['main_type_Chinese'] = '';
+        }
         setProduct(_product)
     }
 
