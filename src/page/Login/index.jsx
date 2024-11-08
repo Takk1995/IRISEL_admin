@@ -46,7 +46,7 @@ const Login = () => {
             </div>
             <div className='flex justify-content-center align-items-center' style={{ minHeight: '70vh' }}>
                 <div className="login-container">
-                    <Card title="後台" className='loginCard' style={{ width: '300px'}}>
+                    <Card title="後台管理" className='loginCard' style={{ width: '300px'}}>
                         <div style={{height:'40px'}}>
                             {error && <Message severity="error" text={error} />}
                         </div>
